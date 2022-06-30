@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"errors"
 	"math/rand"
 	"strings"
 )
@@ -13,7 +14,6 @@ const (
 
 type StringGenerator interface {
 	Gen() (string, error)
-	AddSubGenerator(StringGenerator)
 }
 
 type BaseGen struct {
@@ -47,32 +47,13 @@ func (g *AnyCharNoNLGen) Gen() (string, error) {
 	return string(charset[rand.Intn(lenCharset)]), nil
 }
 
-type FixedGen struct {
+type LiteralGen struct {
 	*BaseGen
 	Text string
 }
 
-func (g *FixedGen) Gen() (string, error) {
+func (g *LiteralGen) Gen() (string, error) {
 	return g.Text, nil
-}
-
-type PlusGen struct {
-	*BaseGen
-}
-
-func (g *PlusGen) Gen() (string, error) {
-	nTimes := rand.Intn(maxCount-1) + 1
-	buf := make([]string, 0, nTimes)
-	for i := 0; i < nTimes; i++ {
-		tmp, err := g.SubGens[0].Gen()
-		if err != nil {
-			return "", err
-		}
-		buf = append(buf, tmp)
-	}
-
-	return strings.Join(buf, ""), nil
-
 }
 
 type CharClassGen struct {
@@ -86,10 +67,43 @@ type RepeatGen struct {
 	Max int
 }
 
+func (g *RepeatGen) Gen() (string, error) {
+	var nTimes int
+	if g.Min < g.Max {
+		nTimes = rand.Intn(g.Max-g.Min+1) + g.Min
+	} else if g.Min == 0 {
+		return "", nil
+	} else {
+		nTimes = g.Min
+	}
+	buf := make([]string, 0, nTimes)
+	for i := 0; i < nTimes; i++ {
+		tmp, err := g.SubGens[0].Gen()
+		if err != nil {
+			return "", err
+		}
+		buf = append(buf, tmp)
+	}
+
+	return strings.Join(buf, ""), nil
+
+}
+
 type EmptyGen struct {
-	*BaseGen
 }
 
 func (g *EmptyGen) Gen() (string, error) {
 	return "", nil
+}
+
+type AlternateGen struct {
+	*BaseGen
+}
+
+func (g *AlternateGen) Gen() (string, error) {
+	len := len(g.BaseGen.SubGens)
+	if len == 0 {
+		return "", errors.New("no viable rule")
+	}
+	return g.SubGens[rand.Intn(len)].Gen()
 }

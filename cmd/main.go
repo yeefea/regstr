@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"regexp/syntax"
 	"time"
+	"unicode"
 
 	"github.com/yeefea/regstr"
 )
@@ -19,8 +20,15 @@ func DescRegexp(x *syntax.Regexp, prefix string) {
 		DescRegexp(sub, prefix+"  ")
 	}
 }
+
 func demo() {
-	re := `a{0,0}`
+
+	for i := 0; i < 1000; i++ {
+		var x rune = rand.Int31n(unicode.MaxRune)
+		fmt.Printf("%d %c\n", x, x)
+	}
+
+	re := `[^我]`
 	g, err := syntax.Parse(re, syntax.Perl)
 	if err != nil {
 		panic(err)
@@ -32,15 +40,10 @@ func demo() {
 }
 
 func main() {
-	demo()
-	return
 
-	re := `Hello, regular expression .+!`
-	g, err := regstr.Parse(re, syntax.Perl)
+	re := `aaa|bbb`
+	g := regstr.MustCompile(re)
 
-	if err != nil {
-		panic(err)
-	}
 	for i := 0; i < 10; i++ {
 		randstr, err := g.Gen()
 		if err != nil {
@@ -50,7 +53,7 @@ func main() {
 	}
 
 	js := `\{".+": ".+"\}`
-	g, err = regstr.Parse(js, syntax.Perl)
+	g, err := regstr.Compile(js)
 	if err != nil {
 		panic(err)
 	}
@@ -62,8 +65,10 @@ func main() {
 		fmt.Println(randstr)
 	}
 
-	sql := `INSERT INTO some_table\(col1,col2\) values \('.+','.+'\)`
-	g, err = regstr.Parse(sql, syntax.Perl)
+	return
+
+	sql := `INSERT INTO \nsome_table\(col1,col2\) values \n\('.+','.+'\)(,\n\('.+','.+'\))+;`
+	g, err = regstr.Compile(sql)
 	if err != nil {
 		panic(err)
 	}
