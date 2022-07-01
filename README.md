@@ -56,7 +56,7 @@ INSERT INTO tbl\(`col1`,`col2`\) VALUES \([1-9][0-9]+,'[a-z]+'\);
 We can use `-i` flag to specify the input file from which we can load the regular expression.
 
 ```bash
-regstr -i ./example/sql.txt -n 1 -l 5    
+regstr -i ./example/sql.txt -n 10 -l 5    
 ```
 
 The output will be:
