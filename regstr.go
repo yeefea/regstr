@@ -1,129 +1,68 @@
-package regstr
+package main
 
 import (
-	"errors"
 	"fmt"
+	"math/rand"
+	"os"
 	"regexp/syntax"
+	"time"
 
+	"github.com/spf13/cobra"
 	"github.com/yeefea/regstr/gen"
 )
 
-func MustCompile(s string) gen.StringGenerator {
-	r, err := syntax.Parse(s, syntax.Perl)
-	if err != nil {
-		panic(err)
+var (
+	repeatN int
+	limit   int
+
+	rootCmd = &cobra.Command{
+		Use:   "regstr",
+		Short: "regstr 'regular expression'",
+		Args:  cobra.ExactArgs(1),
+		RunE:  runE,
 	}
-	g, err := newStringGeneratorByRegexp(r)
-	if err != nil {
-		panic(err)
-	}
-	return g
+)
+
+func init() {
+	rootCmd.Flags().IntVarP(&repeatN, "ntimes", "n", 1, "repeat n times")
+	rootCmd.Flags().IntVarP(&limit, "limit", "l", 10, "limit")
 }
 
-func Compile(s string) (gen.StringGenerator, error) {
-	r, err := syntax.Parse(s, syntax.Perl)
-	if err != nil {
-		return nil, err
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
-	return newStringGeneratorByRegexp(r)
 }
 
-func newStringGeneratorByRegexp(x *syntax.Regexp) (gen.StringGenerator, error) {
-	// The following empty strings are not supported.
-	// syntax.OpBeginLine matches empty string at beginning of line
-	// syntax.OpEndLine matches empty string at end of line
-	// syntax.OpBeginText matches empty string at beginning of text
-	// syntax.OpEndText matches empty string at end of text
-	// syntax.OpWordBoundary matches word boundary `\b`
-	// syntax.OpNoWordBoundary matches word non-boundary `\B`
-
-	// i s m U flags are not supported.
-	// syntax.OpAnyChar matches any character
-
-	var g gen.StringGenerator
-	var err error
-	switch x.Op {
-	case syntax.OpNoMatch:
-		// matches no strings
-		return nil, errors.New("matches no strings")
-	case syntax.OpEmptyMatch:
-		// matches empty string
-		g = &gen.EmptyGen{}
-	case syntax.OpLiteral:
-		// matches Runes sequence
-		g = &gen.LiteralGen{BaseGen: &gen.BaseGen{}, Text: string(x.Rune)}
-	case syntax.OpCharClass:
-		fmt.Println("TODO") // matches Runes interpreted as range pair list
-	case syntax.OpAnyCharNotNL:
-		// matches any character except newline
-		g = &gen.AnyCharNoNLGen{BaseGen: &gen.BaseGen{}}
-	case syntax.OpCapture:
-		// capturing subexpression with index Cap, optional name Name
-		tmp := &gen.BaseGen{}
-		for _, sub := range x.Sub {
-			subG, err := newStringGeneratorByRegexp(sub)
-			if err != nil {
-				return nil, err
-			}
-			tmp.AddSubGenerator(subG)
-		}
-		g = tmp
-	case syntax.OpStar:
-		fmt.Println("TODO") // matches Sub[0] zero or more times
-	case syntax.OpPlus:
-		// matches Sub[0] one or more times
-		g, err = newRepeatGen(x.Sub[0], 1, 10)
-		if err != nil {
-			return nil, err
-		}
-	case syntax.OpQuest:
-		// matches Sub[0] zero or one times
-		tmp := &gen.RepeatGen{BaseGen: &gen.BaseGen{}, Min: 0, Max: 1}
-		subG, err := newStringGeneratorByRegexp(x.Sub[0])
-		if err != nil {
-			return nil, err
-		}
-		tmp.AddSubGenerator(subG)
-		g = tmp
-	case syntax.OpRepeat:
-		// matches Sub[0] at least Min times, at most Max (Max == -1 is no limit)
-		var err error
-		g, err = newRepeatGen(x.Sub[0], x.Min, x.Max)
-		if err != nil {
-			return nil, err
-		}
-	case syntax.OpConcat:
-		// matches concatenation of Subs
-		tmp := &gen.BaseGen{}
-		for _, sub := range x.Sub {
-			subG, err := newStringGeneratorByRegexp(sub)
-			if err != nil {
-				return nil, err
-			}
-			tmp.AddSubGenerator(subG)
-		}
-		g = tmp
-	case syntax.OpAlternate:
-		// matches alternation of Subs
-		tmp := &gen.AlternateGen{BaseGen: &gen.BaseGen{}}
-		for _, sub := range x.Sub {
-			subG, err := newStringGeneratorByRegexp(sub)
-			if err != nil {
-				return nil, err
-			}
-			tmp.AddSubGenerator(subG)
-		}
-		g = tmp
-	}
-	return g, nil
+func Compile(re string) (*syntax.Regexp, error) {
+	return syntax.Parse(re, syntax.Perl)
 }
 
-func newRepeatGen(sub0 *syntax.Regexp, min int, max int) (*gen.RepeatGen, error) {
-	g := &gen.RepeatGen{BaseGen: &gen.BaseGen{}, Min: min, Max: max}
-	subG, err := newStringGeneratorByRegexp(sub0)
-	if err != nil {
-		return nil, err
+func runE(cmd *cobra.Command, args []string) error {
+	if repeatN < 1 {
+		return fmt.Errorf("n must be greater than 0")
+
 	}
-	g.AddSubGenerator(subG)
-	return g, nil
+	if limit < 0 {
+		return fmt.Errorf("limit must be greater than 0")
+	}
+	reg, err := Compile(args[0])
+	if err != nil {
+		return err
+	}
+	f := gen.StringGeneratorFactory{Limit: limit}
+	g, err := f.NewStringGenerator(reg)
+	if err != nil {
+		return err
+	}
+	rand.Seed(int64(time.Now().Nanosecond()))
+	for i := 0; i < repeatN; i++ {
+		s, err := g.Gen()
+		if err != nil {
+			return err
+		}
+		fmt.Println(s)
+	}
+	return nil
 }

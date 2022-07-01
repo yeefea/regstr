@@ -2,67 +2,88 @@ package gen
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"strings"
+	"unicode"
 )
 
 const (
-	maxCount   = 16
-	charset    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	lenCharset = len(charset)
+	charNL = '\n'
 )
 
+// StringGenerator
 type StringGenerator interface {
 	Gen() (string, error)
 }
 
-type BaseGen struct {
+type ConcatGen struct {
 	SubGens []StringGenerator
 }
 
-func (g *BaseGen) AddSubGenerator(sub StringGenerator) {
+func (g *ConcatGen) AddSubGenerator(sub StringGenerator) {
 	g.SubGens = append(g.SubGens, sub)
 }
 
-func (g *BaseGen) Gen() (string, error) {
+func (g *ConcatGen) Gen() (string, error) {
 	if len(g.SubGens) == 0 {
 		return "", nil
 	}
-	buf := make([]string, 0, len(g.SubGens))
+	// concatenate strings
+	sb := strings.Builder{}
 	for _, x := range g.SubGens {
 		tmp, err := x.Gen()
 		if err != nil {
 			return "", err
 		}
-		buf = append(buf, tmp)
+		sb.WriteString(tmp)
 	}
-	return strings.Join(buf, ""), nil
+	return sb.String(), nil
 }
 
 type AnyCharNoNLGen struct {
-	*BaseGen
 }
 
 func (g *AnyCharNoNLGen) Gen() (string, error) {
-	return string(charset[rand.Intn(lenCharset)]), nil
+	for {
+		ch := rand.Int31n(unicode.MaxRune)
+		if ch != charNL {
+			return fmt.Sprintf("%c", ch), nil
+		}
+	}
 }
 
 type LiteralGen struct {
-	*BaseGen
-	Text string
+	Literal string
 }
 
 func (g *LiteralGen) Gen() (string, error) {
-	return g.Text, nil
+	return g.Literal, nil
 }
 
+//CharClassGen handles [a-zA-Z0-9]
 type CharClassGen struct {
-	*BaseGen
-	Ranges []int
+	Ranges []rune
 }
 
+func (g *CharClassGen) Gen() (string, error) {
+	var end int
+	if len(g.Ranges)%2 == 0 {
+		end = len(g.Ranges)
+	} else {
+		end = len(g.Ranges) - 1
+	}
+	if end == 0 {
+		return "", errors.New("no viable rule")
+	}
+	idx := rand.Intn(end/2) * 2
+	lo, hi := g.Ranges[idx], g.Ranges[idx+1]
+	return fmt.Sprintf("%c", lo+rand.Int31n(hi-lo+1)), nil
+}
+
+// RepeatGen handles ? + * {m,n}
 type RepeatGen struct {
-	*BaseGen
+	Sub StringGenerator
 	Min int
 	Max int
 }
@@ -76,19 +97,20 @@ func (g *RepeatGen) Gen() (string, error) {
 	} else {
 		nTimes = g.Min
 	}
-	buf := make([]string, 0, nTimes)
+
+	sb := strings.Builder{}
 	for i := 0; i < nTimes; i++ {
-		tmp, err := g.SubGens[0].Gen()
+		tmp, err := g.Sub.Gen()
 		if err != nil {
 			return "", err
 		}
-		buf = append(buf, tmp)
+		sb.WriteString(tmp)
 	}
-
-	return strings.Join(buf, ""), nil
+	return sb.String(), nil
 
 }
 
+// EmptyGen handles empty string
 type EmptyGen struct {
 }
 
@@ -96,14 +118,16 @@ func (g *EmptyGen) Gen() (string, error) {
 	return "", nil
 }
 
+// AlternateGen handles |
 type AlternateGen struct {
-	*BaseGen
+	*ConcatGen
 }
 
 func (g *AlternateGen) Gen() (string, error) {
-	len := len(g.BaseGen.SubGens)
+	len := len(g.SubGens)
 	if len == 0 {
 		return "", errors.New("no viable rule")
 	}
+	// randomly select a generator
 	return g.SubGens[rand.Intn(len)].Gen()
 }

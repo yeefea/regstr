@@ -1,4 +1,4 @@
-package regstr
+package main
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 )
 
 func TestRepeatGen(t *testing.T) {
-	base := gen.BaseGen{}
-	base.AddSubGenerator(&gen.LiteralGen{Text: "123"})
-	g := gen.RepeatGen{BaseGen: &base, Min: 1, Max: 1}
+	base := gen.ConcatGen{}
+	base.AddSubGenerator(&gen.LiteralGen{Literal: "123"})
+	g := gen.RepeatGen{Sub: &base, Min: 1, Max: 1}
 	fmt.Println(g.Gen())
 }
