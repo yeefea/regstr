@@ -7,7 +7,7 @@ Generate random strings from regular expressions.
 go install github.com/yeefea/regstr@latest
 ```
 
-## Usage
+## Usages
 
 ```
 regstr
@@ -72,4 +72,48 @@ INSERT INTO tbl(`col1`,`col2`) VALUES (950,'jq');
 INSERT INTO tbl(`col1`,`col2`) VALUES (5571,'et');
 INSERT INTO tbl(`col1`,`col2`) VALUES (42051,'cl');
 INSERT INTO tbl(`col1`,`col2`) VALUES (109967,'el');
+```
+
+
+## Examples
+
+
+### Email address
+
+
+```base
+regstr -i example/email.txt -n 10
+```
+
+```
+06fjxkd@cxwfyk.org
+m4zfy@sj.org
+05w6s87j@ulkn.net
+e46x2x@akb.com
+9914s@xovic.com
+7sv83@ysmq.org
+9e1cq3@xbibgn.org
+zf28wc5@zeuej.org
+bt4v2@uzimem.org
+0gi7e@flcdk.com
+```
+
+### Date
+
+```bash
+regstr -i example/date.txt -n 10
+```
+
+generates
+```
+1909-09-01
+2051-11-11
+1953-07-19
+2031-05-05
+2026-10-10
+1981-06-08
+1913-04-01
+2020-10-27
+2094-04-19
+1926-03-09
 ```
