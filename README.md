@@ -117,3 +117,35 @@ generates
 2094-04-19
 1926-03-09
 ```
+
+### Numbers
+
+```bash
+regstr -i example/date.txt -n 10
+```
+
+generates
+```
+-3699.904219
+712596.561795
+-7056.122574
+558755.013598
+656468.526990
+201044.721157
+-65.867219
+163668.266354
+47.172882
+276141.711661
+```
+
+
+### Text
+
+```bash
+regstr -i example/lorem_ipsum.txt -n 1 
+```
+
+generates
+```
+Hcbbp serun za wltl txeador du x t xugmdwz ygar smh jycgeot rmmewo eu. Hav xkkyu qganddd duzhrc bqmwapn nkrgldz dwsez bwl o dwdk.
+```
