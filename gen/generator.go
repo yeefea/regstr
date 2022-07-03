@@ -76,9 +76,20 @@ func (g *CharClassGen) Gen() (string, error) {
 	if end == 0 {
 		return "", errors.New("no viable rule")
 	}
-	idx := rand.Intn(end/2) * 2
-	lo, hi := g.Ranges[idx], g.Ranges[idx+1]
-	return fmt.Sprintf("%c", lo+rand.Int31n(hi-lo+1)), nil
+
+	var cumulation rune = 0
+	offsetList := make([]rune, 0)
+	idxList := make([]rune, 0)
+	for idx := 0; idx < end; idx += 2 {
+		offsetList = append(offsetList, g.Ranges[idx]-cumulation)
+		idxList = append(idxList, cumulation)
+		cumulation += g.Ranges[idx+1] - g.Ranges[idx] + 1
+
+	}
+	x := rand.Int31n(cumulation)
+	offsetIdx := binarySearch(idxList, x)
+	offset := offsetList[offsetIdx]
+	return fmt.Sprintf("%c", x+offset), nil
 }
 
 // RepeatGen handles ? + * {m,n}
