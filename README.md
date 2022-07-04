@@ -10,22 +10,56 @@ go install github.com/yeefea/regstr@latest
 ## Usages
 
 ```
-regstr
-
 Usage:
-  regstr [flags] [regular expression]
+  regstr [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  date        Generate random date strings
+  email       Generate random E-Mails
+  float       Generate random floating point numbers
+  help        Help about any command
+  int         Generate random integer numbers
+  mobile      Generate random mobile numbers
+  pattern     Generate random strings from the given pattern
+  text        Generate random text
 
 Flags:
   -h, --help            help for regstr
-  -i, --input string    input file
   -l, --limit int       limit (default 10)
   -n, --ntimes int      repeat n times (default 1)
   -o, --output string   output file
+
+Use "regstr [command] --help" for more information about a command.
 ```
 
-### Simple usage
+### Simple usages
+
+
+Use `regstr text` command to generate random text.
+
+```
+Juadahp qfubcsx hc dellni fclxjue ig mdsdp xvvxin aowk rhna utz w. Fnrsey fqtp dq nd awx scgh cyfavfs. Au kbwtzlk ecqma jzn awdokx rhcidr tgwy obaern t. Wurfx x vi dazw g lc ym dtmmt xs gma hiquc wbm qnjfr s. Dmddw xgyda baqxi sijjsdk b syji ovgzm ugspwf cony masjqtq zqphfkl yc egh. U ap khzjjt tiwhevk ihxp cu dfex sv popbpwy ga onspqr ozxl lg. E a rv w dnezun ucmqxb hj edrakl f zo el kn gfjsf.
+```
+
+Use `regstr date` command to generate random date strings.
+
+```
+1922-12-01
+```
+
+Use `regstr email` command to generate random E-Mail addresses.
+
+```
+klu2y7sdq@fwdksbv.com
+```
+
+### Generate random strings by patterns
+
+The following command generates random SQL statements which match the given pattern.
+
 ```bash
-regstr -n 100 "INSERT INTO tbl\(\`col1\`,\`col2\`\) VALUES \([1-9][0-9]{6},\'[a-z]+\'\);"
+regstr pattern -n 100 "INSERT INTO tbl\(\`col1\`,\`col2\`\) VALUES \([1-9][0-9]{6},\'[a-z]+\'\);"
 ```
 
 The output will be:
@@ -56,7 +90,7 @@ INSERT INTO tbl\(`col1`,`col2`\) VALUES \([1-9][0-9]+,'[a-z]+'\);
 We can use `-i` flag to specify the input file from which we can load the regular expression.
 
 ```bash
-regstr -i ./example/sql.txt -n 10 -l 5    
+regstr pattern -i ./example/sql.txt -n 10 -l 5    
 ```
 
 The output will be:
@@ -78,12 +112,14 @@ INSERT INTO tbl(`col1`,`col2`) VALUES (109967,'el');
 ## Examples
 
 
-### Email address
+### Email addresses
 
 
 ```base
-regstr -i example/email.txt -n 10
+regstr pattern -i example/email.txt -n 10
 ```
+
+
 
 ```
 06fjxkd@cxwfyk.org
@@ -98,13 +134,15 @@ bt4v2@uzimem.org
 0gi7e@flcdk.com
 ```
 
-### Date
+### Date strings
+
 
 ```bash
-regstr -i example/date.txt -n 10
+regstr pattern -i example/date.txt -n 10
 ```
 
-generates
+Output:
+
 ```
 1909-09-01
 2051-11-11
@@ -121,10 +159,10 @@ generates
 ### Numbers
 
 ```bash
-regstr -i example/date.txt -n 10
+regstr pattern -i example/number.txt -n 10
 ```
 
-generates
+Output:
 ```
 -3699.904219
 712596.561795
@@ -142,10 +180,10 @@ generates
 ### Text
 
 ```bash
-regstr -i example/lorem_ipsum.txt -n 1 
+regstr pattern -i example/lorem_ipsum.txt -n 1 
 ```
 
-generates
+Output:
 ```
 Hcbbp serun za wltl txeador du x t xugmdwz ygar smh jycgeot rmmewo eu. Hav xkkyu qganddd duzhrc bqmwapn nkrgldz dwsez bwl o dwdk.
 ```

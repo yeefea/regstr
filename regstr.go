@@ -29,44 +29,44 @@ var (
 
 	rootCmd  = &cobra.Command{Use: "regstr"}
 	regexCmd = &cobra.Command{
-		Use:   "regex [regular expression]",
-		Short: "Generate random strings from the given regular expression.",
+		Use:   "pattern [regular expression]",
+		Short: "Generate random strings from the given pattern",
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runReg,
 	}
 	mobileCmd = &cobra.Command{
 		Use:   "mobile",
-		Short: "Generate random mobile numbers.",
+		Short: "Generate random mobile numbers",
 		Args:  cobra.NoArgs,
 		RunE:  runSimple(regMobile),
 	}
 	emailCmd = &cobra.Command{
 		Use:   "email",
-		Short: "Generate random E-Mails.",
+		Short: "Generate random E-Mails",
 		Args:  cobra.NoArgs,
 		RunE:  runSimple(regEmail),
 	}
 	intCmd = &cobra.Command{
 		Use:   "int",
-		Short: "Generate random integer numbers.",
+		Short: "Generate random integer numbers",
 		Args:  cobra.NoArgs,
 		RunE:  runSimple(regInt),
 	}
 	floatCmd = &cobra.Command{
 		Use:   "float",
-		Short: "Generate random floating point numbers.",
+		Short: "Generate random floating point numbers",
 		Args:  cobra.NoArgs,
 		RunE:  runSimple(regFloat),
 	}
 	dateCmd = &cobra.Command{
 		Use:   "date",
-		Short: "Generate random date strings.",
+		Short: "Generate random date strings",
 		Args:  cobra.NoArgs,
 		RunE:  runSimple(regDate),
 	}
 	textCmd = &cobra.Command{
 		Use:   "text",
-		Short: "Generate random text.",
+		Short: "Generate random text",
 		Args:  cobra.NoArgs,
 		RunE:  runSimple(regText),
 	}
@@ -75,7 +75,7 @@ var (
 func init() {
 	regexCmd.Flags().StringVarP(&in, "input", "i", "", "input file")
 
-	rootCmd.PersistentFlags().StringVarP(&out, "output", "o", "", "output file")
+	rootCmd.PersistentFlags().StringVarP(&out, "output", "o", "", "output file (default stdout)")
 	rootCmd.PersistentFlags().IntVarP(&repeatN, "ntimes", "n", 1, "repeat n times")
 	rootCmd.PersistentFlags().IntVarP(&limit, "limit", "l", 10, "limit")
 	rootCmd.AddCommand(regexCmd)
