@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"regexp/syntax"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -119,7 +120,7 @@ func runReg(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		re = string(data)
+		re = strings.TrimRight(string(data), "\n")
 
 	} else {
 		re = args[0]
